@@ -31,6 +31,10 @@ function App() {
 
   // We use the life cycle methods to archive this.
   React.useEffect(() => {
+    setFilteredTodos(todos);
+  }, [todos]);
+
+  React.useEffect(() => {
     if (search === "") {
       setFilteredTodos(todos);
     } else {
@@ -41,8 +45,6 @@ function App() {
       );
     }
   }, [search]);
-
-  console.log("nashib".includes("nashk"), ">>>>");
 
   const addTodo = (event) => {
     event.preventDefault();
@@ -58,6 +60,28 @@ function App() {
     ]);
     setBody("");
     setTitle("");
+  };
+
+  const markAsCompleted = (id) => {
+    try {
+      // find the todo
+      // we update it's status
+      // delete that todo with the old status
+      // we replace with the new todo with the new status
+
+      setFilteredTodos(() =>
+        filteredTodos?.map((todo, index) => {
+          if (todo.id === id) {
+            todo.status = "Completed";
+            filteredTodos.splice(index, 1, todo);
+          }
+
+          return todo;
+        })
+      );
+    } catch (error) {
+      console.log(error, ">>>>");
+    }
   };
 
   return (
@@ -103,6 +127,8 @@ function App() {
             body={todo.body}
             key={todo.id}
             date={todo.date}
+            status={todo.status}
+            handleMarkAsCompleted={() => markAsCompleted(todo.id)}
           />
         ))}
       </div>
