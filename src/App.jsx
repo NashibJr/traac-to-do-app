@@ -20,6 +20,8 @@ function App() {
   const [search, setSearch] = React.useState("");
   const [todos, setTodos] = React.useState([]);
   const [filteredTodos, setFilteredTodos] = React.useState([]); // create a copy of the todos
+  const [isEdit, setIsEdit] = React.useState(false);
+  const [todoId, setTodId] = React.useState(null);
 
   const date = new Date();
 
@@ -84,9 +86,47 @@ function App() {
     }
   };
 
+  const handleSetTodoId = (id) => {
+    const todo = filteredTodos?.find((todo) => todo.id === id);
+    setTitle(todo.title);
+    setBody(todo.body);
+    setTodId(id);
+    setIsEdit(true);
+  };
+
+  const handleDelete = (id) =>
+    setFilteredTodos(() => filteredTodos?.filter((todo) => todo.id !== id));
+
+  const handleEdit = (event) => {
+    try {
+      event.preventDefault();
+      setFilteredTodos(() =>
+        filteredTodos?.flatMap((todo, index) => {
+          if (todo.id === todoId) {
+            todo.title = title;
+            todo.body = body;
+            filteredTodos.splice(index, 1, todo);
+
+            return [todo];
+          }
+
+          return [todo];
+        })
+      );
+      setTitle("");
+      setBody("");
+      setTodId(null);
+      setIsEdit(false);
+    } catch (error) {
+      console.log(error, ">>>>");
+    }
+  };
+
+  console.log(isEdit, ">>>>");
+
   return (
     <div className="container">
-      <form className="heading-div" onSubmit={addTodo}>
+      <form className="heading-div" onSubmit={isEdit ? handleEdit : addTodo}>
         <div className="input-content">
           <Input
             name="title"
@@ -129,6 +169,8 @@ function App() {
             date={todo.date}
             status={todo.status}
             handleMarkAsCompleted={() => markAsCompleted(todo.id)}
+            handleDelete={() => handleDelete(todo.id)}
+            handleEdit={() => handleSetTodoId(todo.id)}
           />
         ))}
       </div>
