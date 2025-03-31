@@ -19,6 +19,7 @@ function App() {
   const [body, setBody] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [todos, setTodos] = React.useState([]);
+  const [filteredTodos, setFilteredTodos] = React.useState([]); // create a copy of the todos
 
   const date = new Date();
 
@@ -27,6 +28,21 @@ function App() {
   const onChangeBody = (event) => setBody(event.target.value);
 
   const onChangeSearch = (event) => setSearch(event.target.value);
+
+  // We use the life cycle methods to archive this.
+  React.useEffect(() => {
+    if (search === "") {
+      setFilteredTodos(todos);
+    } else {
+      setFilteredTodos(() =>
+        todos?.filter((todo) =>
+          todo.title.toLowerCase().includes(search.toLowerCase())
+        )
+      );
+    }
+  }, [search]);
+
+  console.log("nashib".includes("nashk"), ">>>>");
 
   const addTodo = (event) => {
     event.preventDefault();
@@ -81,7 +97,7 @@ function App() {
         <IoIosSearch size={22} className="search-icon" />
       </div>
       <div className="todos">
-        {todos?.map((todo) => (
+        {filteredTodos?.map((todo) => (
           <Todo
             title={todo.title}
             body={todo.body}
