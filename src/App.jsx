@@ -1,181 +1,80 @@
-import React from "react";
-import "./App.css";
-import Input from "./components/Input";
-import Button from "./components/Button";
-import { FaPlus } from "react-icons/fa6";
-import { IoIosSearch } from "react-icons/io";
-import Todo from "./components/Todo";
-
 /**
- * id => random number
- * title => string
- * body => string
- * status => completed|pending|cancelled
- * date => date-month-year
+ * Axios is simply a promise based HTTP client for node.
+ *  -> It runs on both the client side and the server side.
+ *  -> XMLHTTP requests, server side runs on the http module in node.
+ *
+ * Features of axios.
+ *  - It makes both XMLHTTP requests(client side) and http requests(server side)
+ *  - Supports the promise API.
+ *  - Intercepts requests and responses.
+ *  - Automatically handles JSON data.
+ *
+ * Making HTTP requests with axios.
+ *  - get, post, delete and put
+ *  axios(configuration)
+ * url, method
+ *
+ * The other way is to call the method on the axios object.
+ * axios.get(), axios.post()
+ * => axios.method(url,data, config) config => {}. It has data=>post, put and patch, headers:{}
  */
 
-function App() {
-  const [title, setTitle] = React.useState("");
-  const [body, setBody] = React.useState("");
-  const [search, setSearch] = React.useState("");
-  const [todos, setTodos] = React.useState([]);
-  const [filteredTodos, setFilteredTodos] = React.useState([]); // create a copy of the todos
-  const [isEdit, setIsEdit] = React.useState(false);
-  const [todoId, setTodId] = React.useState(null);
+import React from "react";
+import axios from "axios";
+import client from "./api/client";
 
-  const date = new Date();
-
-  const onChangeTitle = (event) => setTitle(event.target.value);
-
-  const onChangeBody = (event) => setBody(event.target.value);
-
-  const onChangeSearch = (event) => setSearch(event.target.value);
-
-  // We use the life cycle methods to archive this.
-  React.useEffect(() => {
-    setFilteredTodos(todos);
-  }, [todos]);
+export default function App() {
+  const [students, setStudents] = React.useState([]);
 
   React.useEffect(() => {
-    if (search === "") {
-      setFilteredTodos(todos);
-    } else {
-      setFilteredTodos(() =>
-        todos?.filter((todo) =>
-          todo.title.toLowerCase().includes(search.toLowerCase())
-        )
-      );
-    }
-  }, [search]);
+    (async () => {
+      try {
+        const response = await client.get("/students/");
+        setStudents(response.data);
+      } catch (error) {
+        console.log(error, ">>>>");
+      }
+    })();
+  }, []);
 
-  const addTodo = (event) => {
-    event.preventDefault();
-    setTodos((prevState) => [
-      ...prevState,
-      {
-        id: Math.round(Math.random() * 1000),
-        title,
-        body,
-        status: "Pending",
-        date: `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`,
-      },
-    ]);
-    setBody("");
-    setTitle("");
-  };
+  console.log(students, ">>>>");
 
-  const markAsCompleted = (id) => {
+  const handleAddStudent = async () => {
     try {
-      // find the todo
-      // we update it's status
-      // delete that todo with the old status
-      // we replace with the new todo with the new status
-
-      setFilteredTodos(() =>
-        filteredTodos?.map((todo, index) => {
-          if (todo.id === id) {
-            todo.status = "Completed";
-            filteredTodos.splice(index, 1, todo);
-          }
-
-          return todo;
-        })
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/v1/videos/comments/create/2f698885-9087-472f-850e-399afb443e31/",
+        {
+          video: "2c7ed3da-e0f7-445e-a52a-257c0c2aec8b",
+          body: "This video is very very good. I am Aturinda David.",
+        }
       );
+
+      console.log(response.data, ":::::");
     } catch (error) {
-      console.log(error, ">>>>");
+      console.log(error, ">>>");
     }
   };
 
-  const handleSetTodoId = (id) => {
-    const todo = filteredTodos?.find((todo) => todo.id === id);
-    setTitle(todo.title);
-    setBody(todo.body);
-    setTodId(id);
-    setIsEdit(true);
-  };
-
-  const handleDelete = (id) =>
-    setFilteredTodos(() => filteredTodos?.filter((todo) => todo.id !== id));
-
-  const handleEdit = (event) => {
+  const handleCommentDelete = async () => {
     try {
-      event.preventDefault();
-      setFilteredTodos(() =>
-        filteredTodos?.flatMap((todo, index) => {
-          if (todo.id === todoId) {
-            todo.title = title;
-            todo.body = body;
-            filteredTodos.splice(index, 1, todo);
-
-            return [todo];
-          }
-
-          return [todo];
-        })
+      const response = await client.delete(
+        "/videos/comments/3687a837-5be9-4888-92a2-8ae777c553d4/"
       );
-      setTitle("");
-      setBody("");
-      setTodId(null);
-      setIsEdit(false);
+      console.log(response.data);
     } catch (error) {
-      console.log(error, ">>>>");
+      console.log(error, "::::");
     }
   };
-
-  console.log(isEdit, ">>>>");
 
   return (
-    <div className="container">
-      <form className="heading-div" onSubmit={isEdit ? handleEdit : addTodo}>
-        <div className="input-content">
-          <Input
-            name="title"
-            value={title}
-            onChange={onChangeTitle}
-            placeholder="Todo title"
-            required
-          />
-          <Input
-            name="body"
-            value={body}
-            onChange={onChangeBody}
-            placeholder="Todo body"
-            required
-          />
-        </div>
-        <div className="add-btn-container">
-          <Button
-            icon={<FaPlus color="#fff" className="icon" size={18} />}
-            className="add-btn"
-            type="submit"
-          />
-        </div>
-      </form>
-      <div className="search-container">
-        <Input
-          name="body"
-          value={search}
-          onChange={onChangeSearch}
-          placeholder="Search by title"
-        />
-        <IoIosSearch size={22} className="search-icon" />
-      </div>
-      <div className="todos">
-        {filteredTodos?.map((todo) => (
-          <Todo
-            title={todo.title}
-            body={todo.body}
-            key={todo.id}
-            date={todo.date}
-            status={todo.status}
-            handleMarkAsCompleted={() => markAsCompleted(todo.id)}
-            handleDelete={() => handleDelete(todo.id)}
-            handleEdit={() => handleSetTodoId(todo.id)}
-          />
-        ))}
-      </div>
-    </div>
+    <>
+      <h2>Hello world</h2>
+      <button type="button" onClick={handleAddStudent}>
+        Add student
+      </button>
+      <button type="button" onClick={handleCommentDelete}>
+        Delete Comment
+      </button>
+    </>
   );
 }
-
-export default App;
